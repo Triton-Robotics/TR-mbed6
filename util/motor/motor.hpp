@@ -349,7 +349,7 @@ class Motor{
                 if (mode[bus][i] == DISABLED)
                     outputArray[i] = 0;
                 else if (mode[bus][i] == POSITION)
-                    outputArray[i] = pidPos[bus][i].calculate(motorOut[bus][i],multiTurnPositionAngle[bus][i],timeDifference);
+                    outputArray[i] += pidSpeed[bus][i].calculate(pidPos[bus][i].calculate(motorOut[bus][i],multiTurnPositionAngle[bus][i],timeDifference),getStaticData(bus,i, VELOCITY),timeDifference);
                     //-PIDPositionError(motorOut1[i], i);
                 else if (mode[bus][i] == SPEED)
                     outputArray[i] += pidSpeed[bus][i].calculate(motorOut[bus][i],getStaticData(bus,i, VELOCITY),timeDifference);
@@ -430,19 +430,19 @@ class Motor{
      * 
      */
     static void tick(){
-        multiTurnPositionControl(CANHandler::CANBUS_1);
         getFeedback(CANHandler::CANBUS_1);
+        multiTurnPositionControl(CANHandler::CANBUS_1);
         sendValues(CANHandler::CANBUS_1);
         
-        multiTurnPositionControl(CANHandler::CANBUS_2);
         getFeedback(CANHandler::CANBUS_2);
+        multiTurnPositionControl(CANHandler::CANBUS_2);
         sendValues(CANHandler::CANBUS_2);
     }
 
     static void tickThread() {
         while (true) {
             tick();
-            ThisThread::sleep_for(1);
+            ThisThread::sleep_for(1ms);
         }
             
     }

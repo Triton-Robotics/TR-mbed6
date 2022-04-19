@@ -9,6 +9,7 @@ class PID {
         float kD;
         float integralCap;
         float outputCap;
+        float deadZone = 0;
     public:
 
         PID(){
@@ -25,10 +26,11 @@ class PID {
          * and outCap, a cap on the actual output so you can limit how much the pid will output until you're sure it 
          * works well before you let it loose
          */
-        PID(float p, float i, float d, float sumCap = 0, float outCap = 0){
+        PID(float p, float i, float d, float sumCap = 0, float outCap = 0, float dZone = 0){
             kP = p; kI = i; kD = d;
             integralCap = sumCap;
             outputCap = outCap;
+            deadZone = dZone;
         }
 
         float calculate(float desiredV, float actualV, float dt){
@@ -45,11 +47,15 @@ class PID {
             if(outputCap != 0){
                 PIDCalc = std::max(std::min(PIDCalc,outputCap),-outputCap);
             }
-            //ThisThread::sleep_for(1ms); //neccessary or else dt -> 0 and causes issues....
-            //printf("desired: %d actual: %d \n",(int)desiredV, int(actualV));
 
+
+            if (abs(error) < deadZone) {
+                printf("im dedzoning\n");
+                return 0;
+            }
             
             return PIDCalc;
+                
         }
 
         void setIntegralCap(float sumCap){
@@ -60,9 +66,14 @@ class PID {
             outputCap = outCap;
         }
 
+        void setDeadZone(float num) {
+            deadZone = num;
+        }
+
         void setPID(float p, float i, float d){
             kP = p; kI = i; kD = d;
         }
+        
 };
 
 #endif //pid_h
