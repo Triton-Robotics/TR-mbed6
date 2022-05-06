@@ -9,6 +9,7 @@ projectfiles
 BUILD
 bobamasterdevboard_A\remote_control\Debug
 cmake_build
+build
 
 ## micro-ros ignores
 libmicroros.a
