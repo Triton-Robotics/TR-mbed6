@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/CMakeFiles/libmicroros_project"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/CMakeFiles/libmicroros_project.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/CMakeFiles/libmicroros_project-complete.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-build.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-configure.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-download.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-install.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-mkdir.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-patch.rule"
+		},
+		{
+			"file" : "/root/workspaces/TR-mbed6/cmake_build/NUCLEO_F446RE/develop/GCC_ARM/libmicroros-prefix/src/libmicroros_project-stamp/libmicroros_project-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"libmicroros_project"
+		],
+		"name" : "libmicroros_project"
+	}
+}

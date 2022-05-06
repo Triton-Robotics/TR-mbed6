@@ -8,3 +8,10 @@ projectfiles
 *.py*
 BUILD
 bobamasterdevboard_A\remote_control\Debug
+
+## micro-ros ignores
+libmicroros.a
+include
+mbed_toolchain.cmake
+micro_ros_dev
+micro_ros_src
