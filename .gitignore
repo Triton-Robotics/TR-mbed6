@@ -8,6 +8,7 @@ projectfiles
 *.py*
 BUILD
 bobamasterdevboard_A\remote_control\Debug
+cmake_build
 
 ## micro-ros ignores
 libmicroros.a

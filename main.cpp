@@ -93,7 +93,7 @@ int main()
 	RCCHECK(rclc_executor_add_subscription(&executor, &subscriber, &recv_msg, &subscription_callback, ON_NEW_DATA));
 
 	send_msg.data = 0;
-	
+
   	while(1){
 		rclc_executor_spin(&executor);
 	}
