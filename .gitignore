@@ -17,3 +17,6 @@ include
 mbed_toolchain.cmake
 micro_ros_dev
 micro_ros_src
+
+#misc ignores
+.vscode
