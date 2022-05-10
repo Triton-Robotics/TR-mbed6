@@ -1,104 +1,285 @@
 #include "mbed.h"
+#include "src/main.hpp"
 
-#include <rcl/rcl.h>
-#include <rcl/error_handling.h>
-#include <std_msgs/msg/int32.h>
+#include <ios>
 
-#include <rclc/rclc.h>
-#include <rclc/executor.h>
-
-#include <rmw_microros/rmw_microros.h>
-
-#define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Aborting.\n",__LINE__,(int)temp_rc);while(1){};}}
-#define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Continuing.\n",__LINE__,(int)temp_rc);}}
+DJIRemote myremote(PA_0, PA_1);
+CANHandler canPorts(PA_11,PA_12,PB_12,PB_13);
 
 
-// --- micro-ROS Transports ---
-extern "C" bool mbed_serial_open(struct uxrCustomTransport * transport);
-extern "C" bool mbed_serial_close(struct uxrCustomTransport * transport);
-extern "C" size_t mbed_serial_write(struct uxrCustomTransport* transport, const uint8_t * buf, size_t len, uint8_t * err);
-extern "C" size_t mbed_serial_read(struct uxrCustomTransport* transport, uint8_t* buf, size_t len, int timeout, uint8_t* err);
 
-// --- micro-ROS App ---
-rcl_publisher_t publisher;
-rcl_subscription_t subscriber;
-std_msgs__msg__Int32 send_msg;
-std_msgs__msg__Int32 recv_msg;
 
-void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
-{
-	(void) last_call_time;
-	if (timer != NULL) {
-		RCSOFTCHECK(rcl_publish(&publisher, &send_msg, NULL));
-	}
+int main() {
+    
+    Motor::setCANHandler(&canPorts);
+    ChassisSubsystem chassis(4,3,1,2,CANHandler::CANBUS_1,M3508);
+    Motor turretX(5,CANHandler::CANBUS_1,M3508);
+    Motor turretY(6,CANHandler::CANBUS_1,GIMBLY); 
+    Motor duck(8,CANHandler::CANBUS_1,M2006); 
+    Motor indexer(7,CANHandler::CANBUS_1,GM6020);
+    
+    PWMMotor flywheelLeft(PA_5);
+    PWMMotor flywheelRight(PA_6);
+    
+    while(1){
+        myremote.remoteUpdate(0);
+        int lX = (int)myremote.getStickData(LEFTJOYX, 0, 660);
+        int lY = (int)myremote.getStickData(LEFTJOYY, 0, 660);
+        int rX = (int)myremote.getStickData(RIGHTJOYX, 0, 660);
+        int rY = (int)myremote.getStickData(RIGHTJOYY, 0, 660);
+        int Wh = (int)myremote.getStickData(WHEEL, 0, 660);
+        // printf("%d\t %d \t %d \t %d \t\n", (
+        //     int)myremote.getStickData(LEFTJOYX, 0, 660), 
+        //     (int)myremote.getStickData(LEFTJOYY, 0, 660), 
+        //     (int)myremote.getStickData(RIGHTJOYX, 0, 660), 
+        //     (int)myremote.getStickData(RIGHTJOYY, 0, 660)
+        // );
+        //printf("%d\n", Wh);
+        //printf("%d\t %d \t %d \t %d \t %d\t\n", lX, lY, rX, rY, Wh);
+        int lS = (int)myremote.getSwitchData(LSWITCH);
+        int rS = (int)myremote.getSwitchData(RSWITCH);
+        //printf("%d\t %d \t %d \t %d \t %d\t %d\t %d\t\n", lX, lY, rX, rY, lS, rS, Wh);
+        chassis.move(
+            lY,
+            lX,
+            0
+        );
+        //printf("duck position: %d\n", duck.getData(ANGLE));
+        if(lS == 1){
+            duck.setDesiredCurrent(750);
+        }else if(lS == 3){
+            duck.setDesiredCurrent(-750);
+        }else if(lS == 2){
+            duck.setDesiredCurrent(0);
+        }
+        if(rS == 1){
+            indexer.setDesiredCurrent(2500);
+            flywheelLeft.set(150);
+            flywheelRight.set(150);
+        }else if(rS == 3){
+            indexer.setDesiredCurrent(-2500);
+            flywheelLeft.set(150);
+            flywheelRight.set(150);
+        }else if(rS == 2){
+            indexer.setDesiredCurrent(0);
+            flywheelLeft.set(0);
+            flywheelRight.set(0);
+        }
+        //turretX.setDesiredCurrent(rX * 5);
+        turretX.setDesiredPos(-1 * (rX / 660.0) * 180);
+        turretY.setDesiredCurrent(rY * 20);
+        //Motor::rawSend(0x2FF,0,rY * 20,0,0,CANHandler::CANBUS_1);
+    }
 }
 
-void subscription_callback(const void * msgin)
-{
-	const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
-    send_msg.data = msg->data;
-}
 
-int main()
-{
-    //printf("hello world\n");
-    DigitalOut led(LED2);
+// #include "src/main.hpp"
+// #include "util/communications/SerialCommunication.hpp"
+// #include <ios>
+// DJIRemote myremote(PA_0, PA_1);
+// CANHandler canPorts(PA_11,PA_12,PB_12,PB_13);
 
-	rmw_uros_set_custom_transport(
-        true,
-        NULL,
-        mbed_serial_open,
-        mbed_serial_close,
-        mbed_serial_write,
-        mbed_serial_read
-    );
+// //Remote remoteController(A1); 
+// robotType rType = HERO;
+// int maxspeed = 300;
 
-	rcl_allocator_t allocator = rcl_get_default_allocator();
-	rclc_support_t support;
+// int main(){
+//     printf("Initializing. . .\n");
+//     Motor::setCANHandler(&canPorts);
+//     printf("Starting robot\n");
+//     if(rType == TEST_BENCH){
+//         printf("--TEST_BENCH--\n");
+//         //ChassisSubsystem chassis(1,2,3,4,CANHandler::CANBUS_1,M3508);
+//         while(1){
+//             myremote.remoteUpdate(); //remoteController.read();
+            
+//         }
+//     }else if(rType == SENTRY){
+//         printf("--SENTRY--\n");
+//         int gimYBound[2] = {32,96};
+//         int gim2YBound[2] = {700,2300};
+//         int gimXBound[2] = {-180,180};
+//         //ChassisSubsystem chassis(3,4,0,0,CANHandler::CANBUS_1,M3508);
+//         Motor chassis1(3,CANHandler::CANBUS_1,M3508);
+//         Motor chassis2(4,CANHandler::CANBUS_1,M3508);
 
-	// create init_options
-	RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
+//         Motor gimbalX(7,CANHandler::CANBUS_1,GM6020);
+//         Motor gimbalY(6,CANHandler::CANBUS_1,GM6020);
 
-	// create node
-	rcl_node_t node;
-	RCCHECK(rclc_node_init_default(&node, "nucleo_f446re", "", &support));
+//         gimbalY.setPositionBounds(gimYBound[0], gimYBound[1]);
+//         gimbalX.setPositionBounds(gimXBound[0], gimXBound[1]);
 
-	// create publisher
-	RCCHECK(rclc_publisher_init_default(
-		&publisher,
-		&node,
-		ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-		"gimbal_data_echo"));
+//         //gimbalY.setPositionPID(20, 0, 0);
+//         gimbalY.setPositionIntegralCap(10);
+//         gimbalX.setPositionIntegralCap(50);
 
-  	// create subscriber
-	RCCHECK(rclc_subscription_init_default(
-		&subscriber,
-		&node,
-		ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-		"gimbal_data"));
+//         gimbalY.setPositionOutputCap(5000);
+//         gimbalY.setSpeedOutputCap(4000);
+//         gimbalX.setPositionIntegralCap(2000);
 
-	// create timer,
-	rcl_timer_t timer;
-	const unsigned int timer_timeout = 1000;
-	RCCHECK(rclc_timer_init_default(
-		&timer,
-		&support,
-		RCL_MS_TO_NS(timer_timeout),
-		timer_callback));
+//         PID pidGimY(.1,0,10,0,1000);
+//         PID pidGimyPos(7,1,10,2000,4500);
 
-	// create executor
-	rclc_executor_t executor;
-	RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
-	RCCHECK(rclc_executor_add_timer(&executor, &timer));
-	RCCHECK(rclc_executor_add_subscription(&executor, &subscriber, &recv_msg, &subscription_callback, ON_NEW_DATA));
+//         PWMMotor leftFlywheel(PA_5);
+//         PWMMotor rightFlywheel(PA_6);
 
-	send_msg.data = 0;
 
-  	while(1){
-		rclc_executor_spin(&executor);
-	}
+//         Motor indexer(2,CANHandler::CANBUS_1,M3508);
+//         indexer.setSpeedPID(3,0,2);
 
-	RCCHECK(rcl_subscription_fini(&subscriber, &node));
-	RCCHECK(rcl_publisher_fini(&publisher, &node));
-	RCCHECK(rcl_node_fini(&node));
-}
+//         unsigned long lastTime = us_ticker_read() / 1000;
+//         while(1){
+            
+//             unsigned long Time = us_ticker_read() / 1000;
+//             unsigned long timeDifference = Time - lastTime;
+//             myremote.remoteUpdate(); //remoteController.read(); 645 2383
+
+            
+
+//             int gimY = (int)(myremote.getStickData(RIGHTJOYY, 0, (gimYBound[1] - gimYBound[0])/2.0) + gimYBound[0] + (gimYBound[1] - gimYBound[0])/2.0);
+//             int gimX = (int)(myremote.getStickData(RIGHTJOYX, 0, 1000));
+            
+//             int stickRY = int(myremote.getStickData(RIGHTJOYY,0,gim2YBound[1] - gim2YBound[0])) + gim2YBound[0];
+//             int gimYAngle = gimbalY.getData(ANGLE);
+
+//             int rY = int(myremote.getStickData(RIGHTJOYY,0,5000));
+//             int rX = int(myremote.getStickData(RIGHTJOYX,0,5000));
+
+//             //chassis1.setDesiredSpeed(myremote.getStickData(LEFTJOYX, 0, maxspeed));
+//             //chassis2.setDesiredSpeed(myremote.getStickData(LEFTJOYX, 0, maxspeed));
+//             //if(gimY != 1501 && gimY != 637)
+//             int calc  = pidGimY.calculate(
+//                 stickRY, 
+//                 gimYAngle, 
+//                 timeDifference);
+//             int calcPosOnly = pidGimyPos.calculate(
+//                 stickRY,
+//                 gimYAngle,
+//                 timeDifference);
+//             //printf("%d\t%d\t%lu\t%d\n",stickRY,gimYAngle,timeDifference,calcPosOnly);            
+//             //gimbalY.setDesiredSpeed(calc);
+            
+//             //gimbalY.setDesiredCurrent(rY);
+//             //gimbalX.setDesiredCurrent(rX);
+//             int indexJamTime = 0;
+//             if(myremote.getSwitchData(LSWITCH) == 2){
+//                 indexer.setDesiredSpeed(0);
+//             }else if(myremote.getSwitchData(LSWITCH) == 1){
+//                 if(abs(indexer.getData(TORQUE)) > 1700){ //jam
+//                     indexJamTime = us_ticker_read() /1000;
+//                 }
+//                 if(us_ticker_read() / 1000 - indexJamTime < 500){
+//                     indexer.setDesiredSpeed(45); //jam
+//                 }else{
+//                     indexer.setDesiredSpeed(-45);
+//                 }
+//             }else if(myremote.getSwitchData(LSWITCH) == 3){
+//                 if(abs(indexer.getData(TORQUE)) > 1700){ //jam
+//                     indexJamTime = us_ticker_read() /1000;
+//                 }
+//                 if(us_ticker_read() / 1000 - indexJamTime < 500){
+//                     indexer.setDesiredSpeed(-45); //jam
+//                 }else{
+//                     indexer.setDesiredSpeed(45);
+//                 }
+//             }
+//             //printf("rY:%d\n",rY);
+
+//             if(myremote.getSwitchData(RSWITCH) == 2){
+//                 leftFlywheel.set(0);
+//                 rightFlywheel.set(0);
+//             }else if(myremote.getSwitchData(RSWITCH) == 1){
+//                 leftFlywheel.set(20);
+//                 rightFlywheel.set(20);
+//             }else if(myremote.getSwitchData(RSWITCH) == 3){
+//                 leftFlywheel.set(-20);
+//                 rightFlywheel.set(-20);
+//             }
+//             //printf("lX%d\tlY%d\trX%d\trY%d\tWh%d\n",int(myremote.getStickData(LEFTJOYX,0,1000)),int(myremote.getStickData(LEFTJOYY,0,1000)),int(myremote.getStickData(RIGHTJOYX,0,1000)),int(myremote.getStickData(RIGHTJOYY,0,1000)),int(myremote.getStickData(WHEEL,0,1000)));
+
+
+//             //printf("%dL  R%d\n",myremote.getSwitchData(LSWITCH),myremote.getSwitchData(RSWITCH));
+//             // for(int i = 29; i < 100; i ++){
+//             //     gimbalY.setDesiredPos(i);
+//             //     ThisThread::sleep_for(10ms);
+//             // }
+//             // for(int i = 99; i > 28; i --){
+//             //     gimbalY.setDesiredPos(i);
+//             //     ThisThread::sleep_for(10ms);
+//             // }
+//             //gimbalX.setDesiredSpeed(gimX);
+//             //gimbalX.setDesiredPos(gimX);
+//             //printf("X%d\t",(int)(gimbalX.getData(MULTITURNANGLE) * 360.0 / 8191));
+//             //printf("DX%d\t",(int)(myremote.getStickData(RIGHTJOYX, 0, gimXBound[1])));
+//             //printf("Y%d\t",(int)(gimbalY.getData(MULTITURNANGLE) * 360.0 / 8191));
+//             //printf("DY%d\n",(int)(myremote.getStickData(RIGHTJOYY, 0, 10000)));
+//             //printf("%d\n",gimY);
+//             //ThisThread::sleep_for(10ms);
+//             lastTime = Time;
+//         }
+//     }else if(rType == INFANTRY){
+//         printf("--INFANTRY--\n");
+//         ChassisSubsystem chassis(4,2,1,3,CANHandler::CANBUS_1,M3508);
+//         Motor gimbalX(5,CANHandler::CANBUS_1,GM6020); //NONE OF THESE IDs ARE CORRECT
+//         Motor gimbalY(6,CANHandler::CANBUS_1,GM6020); //NONE OF THESE IDs ARE CORRECT
+//         while(1){
+//             myremote.remoteUpdate(); //remoteController.read();
+//             chassis.move(
+//                 myremote.getStickData(LEFTJOYY, 0, maxspeed), //y
+//                 myremote.getStickData(LEFTJOYX, 0, maxspeed), //x
+//                 myremote.getStickData(RIGHTJOYX, 0, maxspeed)); //rx
+//             gimbalY.setDesiredSpeed(myremote.getStickData(RIGHTJOYY, 0, maxspeed));
+//             gimbalX.setDesiredSpeed(myremote.getStickData(WHEEL, 0, maxspeed));
+//             printf("%d\n",int(myremote.getStickData(LEFTJOYY, 0, maxspeed)*5));
+//         }
+//     }else if(rType == HERO){
+//         printf("--HERO--\n");
+//         ChassisSubsystem chassis(4,3,1,2,CANHandler::CANBUS_1,M3508);
+//         Motor turretX(5,CANHandler::CANBUS_1,M3508);
+//         Motor turretY(7,CANHandler::CANBUS_1,GIMBLY); 
+//         Motor duck(8,CANHandler::CANBUS_1,M2006); 
+//         while(1){
+//             myremote.remoteUpdate(1); //remoteController.read();
+//             int* dats = (int*)calloc(sizeof(int),7);
+//             //int dats[7] = {0,0,0,0,0,0,0};
+//             //printf("Calling getArray\n");
+
+//             int rY = myremote.getStickData(RIGHTJOYY, 0, 1000);
+
+//             myremote.getArray(dats);
+//             // chassis.move(
+//             //     myremote.getStickData(LEFTJOYY,0,1000),
+//             //     myremote.getStickData(LEFTJOYX,0,1000),
+//             //     myremote.getStickData(RIGHTJOYX,0,1000));
+
+//             // turretY.setDesiredCurrent(myremote.getStickData(RIGHTJOYY, 0, maxspeed));
+//             // turretX.setDesiredCurrent(myremote.getStickData(WHEEL, 0, maxspeed));
+
+//             // if(myremote.getSwitchData(RSWITCH) == 2){
+//             //     duck.setDesiredCurrent(0);
+//             // }else if(myremote.getSwitchData(RSWITCH) == 1){
+//             //     duck.setDesiredCurrent(-500);
+//             // }else if(myremote.getSwitchData(RSWITCH) == 3){
+//             //     duck.setDesiredCurrent(500);
+//             // }
+
+//             //for (int i = 0; i < 7; i++)
+//                 //printf("%d\t", dats[i]);
+//             printf("\n");
+
+//             // printf("lX%d\tlY%d\tlX%d\tlY%d\tWh%d\n",
+//             // int16_t(myremote.getRawStick(LEFTJOYX)),
+//             // int16_t(myremote.getRawStick(LEFTJOYY)),
+//             // int16_t(myremote.getRawStick(RIGHTJOYX)),
+//             // int16_t(myremote.getRawStick(RIGHTJOYY)),
+//             // int16_t(myremote.getRawStick(WHEEL)));
+//         }
+//     }else if(rType == ENGINEER){
+//         printf("--ENGINEER--\n");
+//         ChassisSubsystem chassis(1,2,3,4,CANHandler::CANBUS_1,M3508);
+//         while(1){
+//             myremote.remoteUpdate(); //remoteController.read();
+//         }
+//     }
+// }
+

@@ -31,5 +31,19 @@ inline void printFloat(float input, int decimals) {
     printf("%d\n", int(input * (pow(10, decimals))));
 } 
 
+inline void int16ToBitArray(int n, int binaryNum[])
+    {
+        for (int i = 0; i < 16; ++i) {      
+            binaryNum[15-i] = (n >> i) & 1;
+        }
+
+        // for (int i = 0; i < 16; i++) {
+        //     printf("%d", binaryNum[i]);
+        // }
+        // printf("\n");
+    }
+
+
+
 
 #endif
