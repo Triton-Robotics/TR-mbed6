@@ -81,6 +81,8 @@ int16_t rightJoyY;
 int16_t wheel;
 int16_t leftSwitch;
 int16_t rightSwitch;
+char sendString[21];
+
 
 /* USER CODE END PV */
 
@@ -201,8 +203,6 @@ int main(void)
   while (1)
   {
 	  getRCVals();
-	  char sendString[11] = {0,0,0,0,0,0,0,0,0,0,0};
-
 	  sendString[0] = numdataToMSC(leftJoyX);
 	  sendString[1] = numdataToLSC(leftJoyX);
 	  sendString[2] = numdataToMSC(leftJoyY);
@@ -216,7 +216,19 @@ int main(void)
 	  sendString[10] = switchToChar(leftSwitch);
 	  sendString[11] = switchToChar(rightSwitch);
 
-	  HAL_UART_Transmit(&huart7, sendString ,12,HAL_MAX_DELAY);
+	  sendString[12] = numdataToMSC(rc.mouse.x);
+	  sendString[13] = numdataToLSC(rc.mouse.x);
+	  sendString[14] = numdataToMSC(rc.mouse.y);
+	  sendString[15] = numdataToLSC(rc.mouse.y);
+	  sendString[16] = numdataToMSC(rc.mouse.z);
+	  sendString[17] = numdataToLSC(rc.mouse.z);
+	  sendString[18] = switchToChar(rc.mouse.l);
+	  sendString[19] = switchToChar(rc.mouse.r);
+
+	  sendString[20] = (char)rc.kb.key_code;
+
+
+	  HAL_UART_Transmit(&huart7, sendString, sizeof(sendString) ,HAL_MAX_DELAY);
 	  HAL_Delay(40); // Important as to not spam the Nucleo
 
     /* USER CODE END WHILE */
@@ -738,7 +750,7 @@ static void MX_UART7_Init(void)
 
   /* USER CODE END UART7_Init 1 */
   huart7.Instance = UART7;
-  huart7.Init.BaudRate = 1000000;
+  huart7.Init.BaudRate = 100000;
   huart7.Init.WordLength = UART_WORDLENGTH_8B;
   huart7.Init.StopBits = UART_STOPBITS_1;
   huart7.Init.Parity = UART_PARITY_NONE;

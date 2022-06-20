@@ -1,40 +1,52 @@
 #include "mbed.h"
 #include "CANMsg.h"
-#ifndef canHandler_hpp
-#define canHandler_hpp
-class CANHandler{
+
+///////////////////////////////////////////////////////////////////////
+//                        ____               __       __  __  _ _____                   ____               ____     ___   __   _ ___    __  _          
+// _______ ___ _____ ___ / __/__  ___ ____ _/ /  ___ / /_/ /_(_) ___/__  __ _  ___ ___ / __ \___  _______ /  _/__  / _ | / /  (_) _/__ / /_(_)_ _  ___ 
+/// __/ _ `/ // (_-</ -_)\ \/ _ \/ _ `/ _ `/ _ \/ -_) __/ __/ / /__/ _ \/  ' \/ -_|_-</ /_/ / _ \/ __/ -_)/ // _ \/ __ |/ /__/ / _/ -_) __/ /  ' \/ -_)
+//\__/\_,_/\_,_/___/\__/___/ .__/\_,_/\_, /_//_/\__/\__/\__/_/\___/\___/_/_/_/\__/___/\____/_//_/\__/\__/___/_//_/_/ |_/____/_/_/ \__/\__/_/_/_/_/\__/ 
+//                        /_/        /___/                                                                                                             
+//
+///////////////////////////////////////////////////////////////////////
+#ifndef newCanHandler_hpp
+#define newCanHandler_hpp
+
+class NewCANHandler{
     private:
         CANMsg txMsg; //Message object reused to send messages to motors
         CANMsg rxMsg; //Message object reused to recieve messages from motors
-        CAN can1;
-        CAN can2;
+        CAN can;
         
         
     public:
 
         bool exists = false;
         // Declaring CanHandler, can1, and can2
-        CANHandler(PinName can1Rx, PinName can1Tx, PinName can2Rx, PinName can2Tx):
-            can1(can1Rx,can1Tx,1000000), 
-            can2(can2Rx,can2Tx,1000000) 
+        NewCANHandler():
+            can(PA_11,PA_12,1000000)
+            {exists = false;}
+
+        NewCANHandler(PinName canRx, PinName canTx):
+            can(canRx,canTx,1000000)
             {exists = true;}
 
-        
-
-        enum CANBus {CANBUS_1, CANBUS_2, NOBUS};
+        void updateCANs(PinName canRx, PinName canTx){
+            //can = new CAN(canRx,canTx,1000000);
+            CAN can(canRx,canTx,1000000);
+        }
 
         /**
         * @brief Get feedback back from the motor
         * 
         */
-        bool getFeedback(int *id, uint8_t bytes[], CANBus bus){
+        bool getFeedback(int *id, uint8_t bytes[]){
             rxMsg.clear();
             rxMsg.len = 8;
-            if (busAt(bus)->read(rxMsg)) {
-                // if(rxMsg.id == 0x20a)
-                //     printMsg(rxMsg);
-                if (busAt(bus)->rderror()){
-                    printf("read error\n");
+            if (can.read(rxMsg)) {
+                int err = can.rderror();
+                if (err){
+                    printf("Read Error: %d\n", err);
                     return false;
                 }
                 *id = rxMsg.id;
@@ -66,22 +78,24 @@ class CANHandler{
         }
 
         /**
-        * @brief Raw sending of CAN Messages
-        * 
-        * @param id the CAN ID you're sending to
-        * @param bytes the bytes you're sending (8)
-        * @param bus the bus you're sending the CAN messages to
-        */
-        bool rawSend(int id, int8_t bytes[], CANBus bus){
+         * @brief Raw sending of CAN Messages
+         * 
+         * @param id the CAN ID you're sending to
+         * @param bytes the bytes you're sending (8)
+         * @param bus the bus you're sending the CAN messages to
+         */
+        bool rawSend(int id, int8_t bytes[]){
             static int errorCount = 0;
             txMsg.clear(); // clear Tx message storage
             txMsg.id = id; 
 
             for(int i = 0; i < 8; i++){
-                txMsg << bytes[i]; //Take data from bytes array and one at a time store it into txMsg
+                txMsg << int8_t(bytes[i]); //Take data from bytes array and one at a time store it into txMsg
             }
 
-            bool isWrite = busAt(bus)->write(txMsg);
+            //printMsg(txMsg);
+
+            bool isWrite = can.write(txMsg);
             
             if(isWrite == 0) {
                 errorCount++;
@@ -94,20 +108,6 @@ class CANHandler{
                 //printf("Transmission error in rawSend()\n");
             }//printMsg(txMsg);
             return isWrite;
-        }
-
-
-        /**
-        * @brief Handles two CAN busses for a total of 16 motors for a robot.
-        *
-        * @return Returns a pointer to the correct CAN bus (either can 1 or can 2)
-        */
-        CAN* busAt(CANBus bus){
-            if(bus == CANBUS_1)
-                return &can1;
-            else if(bus == CANBUS_2)
-                return &can2;
-            return NULL;
         }
 };
 #endif

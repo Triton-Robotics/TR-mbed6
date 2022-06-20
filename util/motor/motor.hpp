@@ -206,11 +206,13 @@ class Motor{
     int setDesiredValue(int value){
         countWithoutTick ++;
         if(countWithoutTick > 64){
-            //printf("You are not calling Motor::tick() often enough. You should be doing that at the end of every loop.\n");
+            //printf("You are not calling Motor::tick() often enough. There should be a thread doing this, and if you've disabled that, You should be doing that at the end of every loop.\n");
         }
         if (isInverted)
             value = -value;
         if(canHandles->exists){
+            //if(types[currentBus][motorNumber] == GIMBLY)
+            //    printf("Setting gimly motorOut to %d\n", value);
             motorOut[currentBus][motorNumber] = value;
             return motorOut[currentBus][motorNumber];
         }else{
@@ -255,6 +257,7 @@ class Motor{
      * @param value the angle in degrees
      */
     void setDesiredPos(int value) {
+        
         if (positionBounds[currentBus][motorNumber][0] != 0 && positionBounds[currentBus][motorNumber][1] != 0)
         {
             if(value < positionBounds[currentBus][motorNumber][0])
@@ -473,6 +476,8 @@ class Motor{
                 }
                 lastTime[bus][i] = Time;
             }
+            //printf("%d %d %d %d\t",motorOut[bus][0],motorOut[bus][1],motorOut[bus][2],motorOut[bus][3]);
+            //printf("%d %d %d %d\n",outputArray[0],outputArray[1],outputArray[2],outputArray[3]);
             rawSend(sendIDs[0], outputArray[0], outputArray[1], outputArray[2], outputArray[3], bus);
         }
         if(motorExists[bus][4] || motorExists[bus][5] || motorExists[bus][6] || motorExists[bus][7]){
@@ -498,7 +503,7 @@ class Motor{
                     }
                 }
                 if(types[bus][i+4] == GM6020){
-                    printf("Sending for GM6020\n");
+                    
                     if (mode[bus][i+4] == DISABLED){
                         outputArrayGM6020[i] = 0;
                     }else if (mode[bus][i+4] == POSITION){
@@ -509,6 +514,7 @@ class Motor{
                         doSend[1] = true;
                     }else if (mode[bus][i+4] == CURRENT) {
                         outputArrayGM6020[i] = motorOut[bus][i+4];
+                        //printf("\t\t\t\t\t\tSending %d to GM6020 at %d\n",motorOut[bus][i+4],i+4);
                         doSend[1] = true;
                     }
                 }
@@ -516,8 +522,14 @@ class Motor{
             }
             if(doSend[0])
                 rawSend(sendIDs[1], outputArray[0], outputArray[1], outputArray[2], outputArray[3], bus);
-            if(doSend[1])
+            if(doSend[1]){
                 rawSend(sendIDs[2], outputArrayGM6020[0], outputArrayGM6020[1], outputArrayGM6020[2], outputArrayGM6020[3], bus);
+                // printf("\t\t\t");
+                // for(int j = 0; j < 4;j++){
+                //     printf(".%d ",outputArrayGM6020[j]);
+                // }
+                // printf("\n");
+            }
         }
     }
 
@@ -539,7 +551,7 @@ class Motor{
             sentBytes1[2*i] = (motorSending[i] >> 8) & (0xFF);
         }
         canHandles->rawSend(id,sentBytes1,bus);
-        printf("Sending: %d %d %d %d at ID %d\n", data1, data2, data3, data4, id);
+        //printf("Sending: %d %d %d %d at ID %d\n", data1, data2, data3, data4, id);
     }
 
     /**
