@@ -506,9 +506,17 @@ typedef  struct __packed
   uint16_t data_cmd_id;
   uint16_t sender_ID;
   uint16_t receiver_ID;
-//   ext_client_custom_graphic_seven_t graphic_custom; // ADDED
-    ext_client_custom_character_t graphic_custom; // ADDED
-}ext_student_interactive_header_data_t;
+  ext_client_custom_graphic_seven_t graphic_custom; // ADDED
+}ext_student_interactive_header_data_graphic_t;
+
+// my copy
+typedef  struct __packed
+{
+  uint16_t data_cmd_id;
+  uint16_t sender_ID;
+  uint16_t receiver_ID;
+  ext_client_custom_character_t graphic_custom; // ADDED
+}ext_student_interactive_header_data_character_t;
 
 /* data */
 typedef __packed struct
@@ -596,37 +604,37 @@ typedef __packed struct
 
 // ------------------- Line 1330
 
-/*机器人交互信息：0x0301*/
-typedef __packed struct
-{
-	xFrameHeader   							txFrameHeader;//帧头
-	uint16_t								CmdID;//命令码
-	ext_student_interactive_header_data_t   dataFrameHeader;//数据段头结构
-	robot_interactive_data_t  	 			interactData;//数据段
-	uint16_t		 						FrameTail;//帧尾
-}ext_CommunatianData_t;
+// /*机器人交互信息：0x0301*/
+// typedef __packed struct
+// {
+// 	xFrameHeader   							txFrameHeader;//帧头
+// 	uint16_t								CmdID;//命令码
+// 	ext_student_interactive_header_data_t   dataFrameHeader;//数据段头结构
+// 	robot_interactive_data_t  	 			interactData;//数据段
+// 	uint16_t		 						FrameTail;//帧尾
+// }ext_CommunatianData_t;
 
-//帧头  命令码   数据段头结构  数据段   帧尾
+// //帧头  命令码   数据段头结构  数据段   帧尾
 
-/*客户端结构体*/
-//上传客户端
-typedef __packed struct
-{
-	xFrameHeader   							txFrameHeader;//帧头
-	uint16_t		 						CmdID;//命令码
-	ext_student_interactive_header_data_t   dataFrameHeader;//数据段头结构
-	graphic_data_struct_t cilentData[7];//数据段
-	uint16_t		 						FrameTail;//帧尾
-}ext_SendClientData_t;
+// /*客户端结构体*/
+// //上传客户端
+// typedef __packed struct
+// {
+// 	xFrameHeader   							txFrameHeader;//帧头
+// 	uint16_t		 						CmdID;//命令码
+// 	ext_student_interactive_header_data_t   dataFrameHeader;//数据段头结构
+// 	graphic_data_struct_t cilentData[7];//数据段
+// 	uint16_t		 						FrameTail;//帧尾
+// }ext_SendClientData_t;
 
-typedef __packed struct
-{
-	xFrameHeader   							txFrameHeader;//帧头
-	uint16_t		 						CmdID;//命令码
-	ext_student_interactive_header_data_t   dataFrameHeader;//数据段头结构
-	graphic_data_struct_t cilentData[5];//数据段
-	uint16_t		 						FrameTail;//帧尾
-}ext_ShowCrossHair_t;
+// typedef __packed struct
+// {
+// 	xFrameHeader   							txFrameHeader;//帧头
+// 	uint16_t		 						CmdID;//命令码
+// 	ext_student_interactive_header_data_t   dataFrameHeader;//数据段头结构
+// 	graphic_data_struct_t cilentData[5];//数据段
+// 	uint16_t		 						FrameTail;//帧尾
+// }ext_ShowCrossHair_t;
 
 
 // ------------------------------
