@@ -77,21 +77,33 @@ static void refereeThread(){
             // RobotStatus_LEDYellow(&referee);
             // RobotStatus_LEDYellow(&pc);
             // Show_CrossHair(&referee);
-            ext_student_interactive_header_data_character_t custom_character_draw;			//自定义图像绘制
 
-        //初始化图形数据变量
-            //自定义图形绘制
+            // delete drawing
+            ext_student_interactive_header_data_delete_t custom_delete_draw;
             {
-            
-                custom_character_draw.data_cmd_id=0x0110;//绘制七个图形（内容ID，查询裁判系统手册）//0104 for 7 diagrams, 0110 for drawing text		
+                custom_delete_draw.data_cmd_id=0x0100;		
+                custom_delete_draw.sender_ID=get_robot_id();//发送者ID，机器人对应ID
+                custom_delete_draw.receiver_ID=get_robot_id()+0x0100;//接收者ID，操作手客户端ID
+                {
+                    custom_delete_draw.graphic_custom.operate_tpye = 1;
+                    custom_delete_draw.graphic_custom.layer = 5;
+                }
+            }
 
-                    custom_character_draw.sender_ID=get_robot_id();//发送者ID，机器人对应ID
-                    custom_character_draw.receiver_ID=get_robot_id()+0x0100;//接收者ID，操作手客户端ID
+            // draw text
+            ext_student_interactive_header_data_character_t custom_character_draw;
+            {            
+                custom_character_draw.data_cmd_id=0x0110;//绘制七个图形（内容ID，查询裁判系统手册）//0104 for 7 diagrams, 0110 for drawing text		
+                custom_character_draw.sender_ID=get_robot_id();//发送者ID，机器人对应ID
+                custom_character_draw.receiver_ID=get_robot_id()+0x0100;//接收者ID，操作手客户端ID
                 //自定义图像数据
                 {
                     // For drawing text ------------------
 
-                    char c[] ="hello";
+                    char c[] = "hello";
+                    if(loop>50){
+                        strcpy(c,"byebye");
+                    }
                     for(int i=0; i<sizeof(c); i++){
                         custom_character_draw.graphic_custom.data[i]=c[i];
                     }
@@ -115,65 +127,65 @@ static void refereeThread(){
 
                 }
             }
+
             // For graphing diagrams ----------------------------
             ext_student_interactive_header_data_graphic_t custom_graphic_draw;	//自定义图像
-
             {
                 custom_graphic_draw.data_cmd_id=0x0104;//绘制七个图形（内容ID，查询裁判系统手册）//0104 for 7 diagrams, 0110 for drawing text
                 custom_graphic_draw.sender_ID=get_robot_id();//发送者ID，机器人对应ID
                 custom_graphic_draw.receiver_ID=get_robot_id()+0x0100;//接收者ID，操作手客户端ID
                 {
                     custom_graphic_draw.graphic_custom.grapic_data_struct[0].graphic_name[0] = 0; //97
-                    // custom_graphic_draw.graphic_custom.grapic_data_struct[0].graphic_name[1] = 97;
-                    // custom_graphic_draw.graphic_custom.grapic_data_struct[0].graphic_name[2] = 0;//图形名
+                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].graphic_name[1] = 97;
+                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].graphic_name[2] = 0;//图形名
                     //上面三个字节代表的是图形名，用于图形索引，可自行定义
                     custom_graphic_draw.graphic_custom.grapic_data_struct[0].operate_tpye=1;//图形操作，0：空操作；1：增加；2：修改；3：删除；
                     custom_graphic_draw.graphic_custom.grapic_data_struct[0].graphic_tpye=0;//图形类型，0为直线，其他的查看用户手册
                     custom_graphic_draw.graphic_custom.grapic_data_struct[0].layer=1;//图层数
                     custom_graphic_draw.graphic_custom.grapic_data_struct[0].color=1;//颜色
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].start_angle=0;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].end_angle=0;
+                    // custom_graphic_draw.graphic_custom.grapic_data_struct[0].start_angle=0;
+                    // custom_graphic_draw.graphic_custom.grapic_data_struct[0].end_angle=0;
                     custom_graphic_draw.graphic_custom.grapic_data_struct[0].width=2;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].start_x=SCREEN_LENGTH/2 -75;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].start_y=SCREEN_WIDTH/2 -50;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].end_x=SCREEN_LENGTH/2 +75;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].end_y=SCREEN_WIDTH/2 -50;
+                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].start_x=100;//SCREEN_LENGTH/2 -75;
+                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].start_y=500;//SCREEN_WIDTH/2 -50;
+                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].end_x=200;//SCREEN_LENGTH/2 +75;
+                    custom_graphic_draw.graphic_custom.grapic_data_struct[0].end_y=500;//SCREEN_WIDTH/2 -50;
                     // custom_graphic_draw.graphic_custom.grapic_data_struct[0].radius=10;
                 }
-                {
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].graphic_name[0] = 1;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].operate_tpye=1;//图形操作，0：空操作；1：增加；2：修改；3：删除；
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].graphic_tpye=0;//图形类型，0为直线，其他的查看用户手册
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].layer=2;//图层数
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].color=1;//颜色
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].start_angle=0;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].end_angle=0;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].width=2;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].start_x=SCREEN_LENGTH/2 -75;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].start_y=SCREEN_WIDTH/2 -100;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].end_x=SCREEN_LENGTH/2 +75;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[1].end_y=SCREEN_WIDTH/2 -100;
-                }
-                {
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].graphic_name[0] = 2;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].operate_tpye=1;//图形操作，0：空操作；1：增加；2：修改；3：删除；
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].graphic_tpye=0;//图形类型，0为直线，其他的查看用户手册
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].layer=3;//图层数
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].color=1;//颜色
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].start_angle=0;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].end_angle=0;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].width=2;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].start_x=SCREEN_LENGTH/2 -75;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].start_y=SCREEN_WIDTH/2 -150;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].end_x=SCREEN_LENGTH/2 +75;
-                    custom_graphic_draw.graphic_custom.grapic_data_struct[2].end_y=SCREEN_WIDTH/2 -150;
-                }        
+                // {
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].graphic_name[0] = 1;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].operate_tpye=1;//图形操作，0：空操作；1：增加；2：修改；3：删除；
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].graphic_tpye=0;//图形类型，0为直线，其他的查看用户手册
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].layer=2;//图层数
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].color=1;//颜色
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].start_angle=0;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].end_angle=0;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].width=2;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].start_x=SCREEN_LENGTH/2 -75;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].start_y=SCREEN_WIDTH/2 -100;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].end_x=SCREEN_LENGTH/2 +75;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[1].end_y=SCREEN_WIDTH/2 -100;
+                // }
+                // {
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].graphic_name[0] = 2;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].operate_tpye=1;//图形操作，0：空操作；1：增加；2：修改；3：删除；
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].graphic_tpye=0;//图形类型，0为直线，其他的查看用户手册
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].layer=3;//图层数
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].color=1;//颜色
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].start_angle=0;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].end_angle=0;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].width=2;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].start_x=SCREEN_LENGTH/2 -75;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].start_y=SCREEN_WIDTH/2 -150;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].end_x=SCREEN_LENGTH/2 +75;
+                //     custom_graphic_draw.graphic_custom.grapic_data_struct[2].end_y=SCREEN_WIDTH/2 -150;
+                // }        
             }
 
-            if(loop % 10==0){ // send only every 10 iterations
-                // referee_data_pack_handle(0xA5,0x0301,(uint8_t *)&custom_character_draw,sizeof(custom_character_draw),&referee);
-                referee_data_pack_handle(0xA5,0x0301,(uint8_t *)&custom_graphic_draw,sizeof(custom_graphic_draw),&referee);
-
+            if(loop % 20==0){ // send only every second
+                referee_data_pack_handle(0xA5,0x0301,(uint8_t *)&custom_delete_draw,sizeof(custom_delete_draw),&referee);
+                referee_data_pack_handle(0xA5,0x0301,(uint8_t *)&custom_character_draw,sizeof(custom_character_draw),&referee);
+                // referee_data_pack_handle(0xA5,0x0301,(uint8_t *)&custom_graphic_draw,sizeof(custom_graphic_draw),&referee);
             }
 
             // printf("write!");
@@ -224,5 +236,5 @@ static void remotePrint(){
 //CANHandler canPorts(PA_11,PA_12,PB_12,PB_13);
 
 Thread threadingRemote(osPriorityNormal);
-//Thread threadingReferee(osPriorityLow);
+Thread threadingReferee(osPriorityNormal);
 Thread threadingPrint(osPriorityBelowNormal);

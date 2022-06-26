@@ -532,11 +532,20 @@ typedef __packed struct
 */
 
 /* 客户端删除图形 机器人间通信：0x0301 */
-typedef __packed struct
+typedef  struct __packed
 {
   uint8_t operate_tpye; 
   uint8_t layer; 
 }ext_client_custom_graphic_delete_t;
+
+// my copy
+typedef  struct __packed
+{
+  uint16_t data_cmd_id;
+  uint16_t sender_ID;
+  uint16_t receiver_ID;
+  ext_client_custom_graphic_delete_t graphic_custom; // ADDED
+}ext_student_interactive_header_data_delete_t;
 
 // /* 图形数据 */
 // typedef __packed struct

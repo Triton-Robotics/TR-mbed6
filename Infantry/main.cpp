@@ -30,7 +30,7 @@ void setFlyWheelPwr(int pwr) {
 int main()
 {
     threadingRemote.start(&remoteThread);
-    //threadingReferee.start(&refereeThread);
+    threadingReferee.start(&refereeThread);
     CANMotor::setCANHandlers(&canHandler1,&canHandler2);
 
     LB.setSpeedPID(1.75, 0.351, 5.63);
